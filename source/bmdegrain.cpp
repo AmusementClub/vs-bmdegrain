@@ -1113,7 +1113,7 @@ static void VS_CC BMDegrainRawCreate(
         // d->block_size = 6;
         d->block_size = 8; // more optimized
     } else if (d->block_size <= 0) {
-        return set_error("\"th_sse\" must be positive");
+        return set_error("\"block_size\" must be positive");
     }
 
     for (unsigned i = 0; i < std::size(d->th_sse); ++i) {
