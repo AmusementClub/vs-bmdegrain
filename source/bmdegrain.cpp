@@ -722,7 +722,8 @@ static inline void patch_estimation(
             sum_squared_error += square(denoising_patch[j] - denoising_patch[i * block_stride + j]);
         }
         if (sum_squared_error < th_sse) {
-            weights[i] = (th_sse - sum_squared_error) / (th_sse + sum_squared_error);
+            auto f = [](float x) { return std::sqrt(x); };
+            weights[i] = (f(th_sse) - f(sum_squared_error)) / (f(th_sse) + f(sum_squared_error));
         } else {
             weights[i] = 0.0f;
         }
