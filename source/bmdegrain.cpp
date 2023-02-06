@@ -748,34 +748,27 @@ static inline void patch_estimation(
 static inline void col2im(
     float * VS_RESTRICT intermediate,
     const float * VS_RESTRICT denoising_patch, int block_stride,
-    const std::vector<std::tuple<float, int, int, int>> & errors,
-    int height, int intermediate_stride, int radius,
+    int radius, int x, int y,
+    int height, int intermediate_stride,
     int block_size, int active_group_size,
     float adaptive_weight
 ) noexcept {
 
-    active_group_size = 1; // mod
+    float * VS_RESTRICT wdstp = &intermediate[(radius * 2 * height + y) * intermediate_stride + x];
+    float * VS_RESTRICT weightp = &intermediate[((radius * 2 + 1) * height + y) * intermediate_stride + x];
 
-    for (int i = 0; i < active_group_size; ++i) {
-        auto [error, bm_x, bm_y, bm_t] = errors[i];
-        bm_t = radius; // mod
-
-        float * VS_RESTRICT wdstp = &intermediate[(bm_t * 2 * height + bm_y) * intermediate_stride + bm_x];
-        float * VS_RESTRICT weightp = &intermediate[((bm_t * 2 + 1) * height + bm_y) * intermediate_stride + bm_x];
-
-        for (int patch_y = 0; patch_y < block_size; ++patch_y) {
-            for (int patch_x = 0; patch_x < block_size; ++patch_x) {
-                wdstp[patch_x] += denoising_patch[patch_x] * adaptive_weight;
-                weightp[patch_x] += adaptive_weight;
-            }
-
-            wdstp += intermediate_stride;
-            weightp += intermediate_stride;
-            denoising_patch += block_size;
+    for (int patch_y = 0; patch_y < block_size; ++patch_y) {
+        for (int patch_x = 0; patch_x < block_size; ++patch_x) {
+            wdstp[patch_x] += denoising_patch[patch_x] * adaptive_weight;
+            weightp[patch_x] += adaptive_weight;
         }
 
-        denoising_patch += block_stride - square(block_size);
+        wdstp += intermediate_stride;
+        weightp += intermediate_stride;
+        denoising_patch += block_size;
     }
+
+    denoising_patch += block_stride - square(block_size);
 }
 
 static inline void aggregation(
@@ -932,7 +925,8 @@ static void process(
                         workspace.intermediate,
                         // inputs
                         workspace.current_patch, block_stride,
-                        errors, height, width, d->radius,
+                        d->radius, x, y,
+                        height, width,
                         d->block_size, active_group_size, adaptive_weight
                     );
                 } else {
@@ -941,7 +935,8 @@ static void process(
                         dstp,
                         // inputs
                         workspace.current_patch, block_stride,
-                        errors, height, stride, d->radius,
+                        d->radius, x, y,
+                        height, width,
                         d->block_size, active_group_size, adaptive_weight
                     );
                 }
@@ -1127,7 +1122,7 @@ static void VS_CC BMDegrainRawCreate(
     d->block_step = int64ToIntS(vsapi->propGetInt(in, "block_step", 0, &error));
     if (error) {
         // d->block_step = 6;
-        d->block_step = 8; // follows the change in block_step
+        d->block_step = d->block_size; // follows the change in block_step
     } else if (d->block_step <= 0 || d->block_step > d->block_size) {
         return set_error("\"block_step\" must be positive and no larger than \"block_size\"");
     }
