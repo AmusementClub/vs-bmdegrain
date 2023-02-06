@@ -10,7 +10,7 @@ Prototype:
 
     The input clip. Must be of 32 bit float format. Each plane is denoised separately.
 
-- sigma:
+- th_sse:
 
     Denoising strength of each plane. `block_size`-invariant.
 
