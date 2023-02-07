@@ -4,7 +4,7 @@ Denoising inspired by bm3d and mvdegrain. Under development, **no backward compa
 ## Usage
 Prototype:
 
-`core.bmdegrain.BMDegrain(clip clip[, float[] th_sse = 3.0, int block_size = 8, int block_step = 8, int group_size = 8, int bm_range = 7, int radius = 0, int ps_num = 2, int ps_range = 4, bool residual = false, clip rclip = None])`
+`core.bmdegrain.BMDegrain(clip clip[, float[] th_sse = 3.0, int block_size = 8, int block_step = 8, int group_size = 8, int bm_range = 7, int radius = 0, int ps_num = 2, int ps_range = 4, clip rclip = None])`
 
 - clip:
 
@@ -17,10 +17,6 @@ Prototype:
 - block_size, block_step, group_size, bm_range, radius, ps_num, ps_range:
 
     Same as those in [VapourSynth-BM3D](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-BM3D).
-
-- residual:
-
-    Whether to center blocks before collaborative filtering. Default: `False`.
 
 - rclip:
 
